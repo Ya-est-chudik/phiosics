@@ -21,7 +21,7 @@ public class SimulationController {
         lensModel.setObjectDistance(150);
         lensModel.setObjectHeight(50);
 
-        // Выполняем расчеты
+        // Выполняем расчет
         performCalculations(lensModel);
 
         modelMap.addAttribute("lensModel", lensModel);
