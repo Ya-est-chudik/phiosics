@@ -1,29 +1,52 @@
 package com.example.demo.web.ui;
 
 import com.example.demo.model.Model;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
-@NoArgsConstructor
 public class SimulationController {
-
-    private  Model lensModel;
 
     @GetMapping("/")
     public String index(ModelMap modelMap) {
-        // Создаем и инициализируем модель через setter'ы
-        lensModel.setObjectDistance(0);
-        lensModel.setFocus(0);
-        lensModel.setObjectHeight(0);
+        Model lensModel = new Model();
 
-        // Проверяем валидность и выполняем все вычисления через методы модели
+        // Устанавливаем значения по умолчанию
+        lensModel.setFocus(100);
+        lensModel.setObjectDistance(150);
+        lensModel.setObjectHeight(50);
+
+        // Выполняем расчеты
+        performCalculations(lensModel);
+
+        modelMap.addAttribute("lensModel", lensModel);
+        return "index";
+    }
+
+    @PostMapping("/update")
+    public String update(
+            @RequestParam float Focus,
+            @RequestParam float ObjectDistance,
+            @RequestParam float ObjectHeight,
+            ModelMap modelMap) {
+
+        Model lensModel = new Model();
+        lensModel.setFocus(Focus);
+        lensModel.setObjectDistance(ObjectDistance);
+        lensModel.setObjectHeight(ObjectHeight);
+
+        performCalculations(lensModel);
+
+        modelMap.addAttribute("lensModel", lensModel);
+        return "index";
+    }
+
+    private void performCalculations(Model lensModel) {
         lensModel.isValidEnter();
 
         if (lensModel.IsValid) {
@@ -32,17 +55,14 @@ public class SimulationController {
             lensModel.calculateImageHeight();
             lensModel.checkImageType();
 
-            // Логируем результаты, полученные через геттеры модели
-            log.info("Результаты расчета:");
-            log.info("Расстояние до изображения (из модели): {}", lensModel.getImageDistance());
-            log.info("Высота изображения (из модели): {}", lensModel.getImageHeight());
-            log.info("Увеличение (из модели): {}", lensModel.getIncreaseLens());
-            log.info("Тип изображения (из модели): {}", lensModel.ImageType);
+            log.info("Расчет выполнен: f={}, d={}, h={}, image_d={}, image_h={}",
+                    lensModel.getFocus(), lensModel.getObjectDistance(),
+                    lensModel.getObjectHeight(), lensModel.getImageDistance(),
+                    lensModel.getImageHeight());
+        } else {
+            lensModel.checkImageType();
+            log.warn("Изображение не существует для параметров: focus={}, distance={}",
+                    lensModel.getFocus(), lensModel.getObjectDistance());
         }
-
-        // Передаем модель в представление - все значения будут взяты из модели
-        modelMap.addAttribute("lensModel", lensModel);
-
-        return "index";
     }
 }
