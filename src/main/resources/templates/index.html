@@ -2,78 +2,172 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Симуляция собирающей линзы</title>
+    <title>Симуляция линзы — Полный экран</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f9; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 20px; }
-        .controls { margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        /* Сбрасываем отступы и растягиваем на весь экран */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            overflow: hidden; /* Убираем прокрутку страницы */
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* Панель управления сверху */
+        .controls-panel {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.85rem; color: #666; font-weight: 600; }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 80px;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: #007bff; outline: none; }
+
+        button {
+            padding: 10px 25px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
         button:hover { background: #0056b3; }
-        .info { margin-top: 15px; padding: 10px; border-left: 5px solid #007bff; background: #e9ecef; width: 100%; box-sizing: border-box; }
-        svg { border: 1px solid #ddd; background: white; margin-top: 20px; }
+
+        /* Информационная плашка */
+        .status-bar {
+            background: #e9ecef;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        /* Контейнер для SVG */
+        .viewport {
+            flex-grow: 1; /* Занимает всё свободное место */
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Делаем SVG адаптивным */
+        svg {
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Оптическая система: Собирающая линза</h2>
+<div class="main-wrapper">
+    <form th:action="@{/update}" method="post" class="controls-panel">
+        <div class="input-group">
+            <label>Фокус (F)</label>
+            <input type="number" step="1" name="Focus" th:value="${lensModel.Focus}" required>
+        </div>
+        <div class="input-group">
+            <label>Дистанция (d)</label>
+            <input type="number" step="1" name="ObjectDistance" th:value="${lensModel.ObjectDistance}" required>
+        </div>
+        <div class="input-group">
+            <label>Высота (h)</label>
+            <input type="number" step="1" name="ObjectHeight" th:value="${lensModel.ObjectHeight}" required>
+        </div>
+        <button type="submit">Обновить схему</button>
 
-    <form th:action="@{/update}" method="post" class="controls">
-        <div>
-            <label>Фокус (F):</label><br>
-            <input type="number" step="0.1" name="Focus" th:value="${lensModel.Focus}" required>
+        <div class="status-bar">
+            <span><strong>Тип:</strong> <span th:text="${lensModel.ImageType}"></span></span>
+            <span><strong>f:</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageDistance, 1, 2)}"></span></span>
+            <span><strong>H:</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageHeight, 1, 2)}"></span></span>
+            <span><strong>IL:</strong> <span th:text="${#numbers.formatDecimal(lensModel.IncreaseLens, 1, 2)}"></span></span>
         </div>
-        <div>
-            <label>Расстояние до объекта (d):</label><br>
-            <input type="number" step="0.1" name="ObjectDistance" th:value="${lensModel.ObjectDistance}" required>
-        </div>
-        <div>
-            <label>Высота объекта (h):</label><br>
-            <input type="number" step="0.1" name="ObjectHeight" th:value="${lensModel.ObjectHeight}" required>
-        </div>
-        <button type="submit">Рассчитать</button>
     </form>
 
-    <div class="info">
-        <strong>Результат:</strong> <span th:text="${lensModel.ImageType}"></span> <br>
-        <strong>Расс-е до изображения (f):</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageDistance, 1, 2)}"></span> <br>
-        <strong>Высота изображения (H):</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageHeight, 1, 2)}"></span> <br>
-        <strong>Увеличение:</strong> <span th:text="${#numbers.formatDecimal(lensModel.IncreaseLens, 1, 2)}"></span>
+    <div class="viewport">
+        <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+            <line x1="0" y1="200" x2="800" y2="200" stroke="#444" stroke-width="1" />
+
+            <line x1="400" y1="50" x2="400" y2="350" stroke="#007bff" stroke-width="3" />
+            <path d="M 390 65 L 400 50 L 410 65" fill="none" stroke="#007bff" stroke-width="3" />
+            <path d="M 390 335 L 400 350 L 410 335" fill="none" stroke="#007bff" stroke-width="3" />
+
+            <circle th:cx="${400 - lensModel.Focus}" cy="200" r="4" fill="red" />
+            <text th:x="${400 - lensModel.Focus - 10}" y="225" font-size="12">F</text>
+            <circle th:cx="${400 + lensModel.Focus}" cy="200" r="4" fill="red" />
+            <text th:x="${400 + lensModel.Focus - 10}" y="225" font-size="12">F</text>
+
+            <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="200"
+                  th:x2="${400 - lensModel.ObjectDistance}" th:y2="${200 - lensModel.ObjectHeight}"
+                  stroke="green" stroke-width="4" />
+
+            <g th:if="${lensModel.IsValid}">
+                <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="${200 - lensModel.ObjectHeight}"
+                      th:x2="${lensModel.ImageDistance > 0 ? 400 + lensModel.ImageDistance : 400 + 100}"
+                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - (100 * (lensModel.ObjectHeight/lensModel.ObjectDistance))}"
+                      stroke="orange" stroke-width="1" stroke-dasharray="5,5" />
+
+                <line th:if="${lensModel.ImageDistance < 0}"
+                      x1="400" y1="200"
+                      th:x2="${400 + lensModel.ImageDistance}" th:y2="${200 - lensModel.ImageHeight}"
+                      stroke="orange" stroke-width="1" stroke-dasharray="2,2" />
+
+                <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="${200 - lensModel.ObjectHeight}"
+                      x2="400" th:y2="${200 - lensModel.ObjectHeight}"
+                      stroke="blue" stroke-width="1" stroke-dasharray="5,5" />
+
+                <line x1="400" th:y1="${200 - lensModel.ObjectHeight}"
+                      th:x2="${lensModel.ImageDistance > 0 ? 400 + lensModel.ImageDistance : 400 + lensModel.Focus + 100}"
+                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 + (100 * (lensModel.ObjectHeight/lensModel.Focus))}"
+                      stroke="blue" stroke-width="1" stroke-dasharray="5,5" />
+
+                <line th:if="${lensModel.ImageDistance < 0}"
+                      x1="400" th:y1="${200 - lensModel.ObjectHeight}"
+                      th:x2="${400 + lensModel.ImageDistance}" th:y2="${200 - lensModel.ImageHeight}"
+                      stroke="blue" stroke-width="1" stroke-dasharray="2,2" />
+
+                <line th:x1="${400 + lensModel.ImageDistance}" th:y1="200"
+                      th:x2="${400 + lensModel.ImageDistance}"
+                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - lensModel.ImageHeight}"
+                      th:stroke="${lensModel.ImageDistance > 0 ? 'red' : 'purple'}"
+                      th:stroke-dasharray="${lensModel.ImageDistance < 0 ? '8,4' : '0'}"
+                      stroke-width="4" />
+            </g>
+        </svg>
     </div>
-
-    <svg width="800" height="400" viewBox="0 0 800 400">
-        <line x1="0" y1="200" x2="800" y2="200" stroke="black" stroke-width="1" />
-
-        <line x1="400" y1="50" x2="400" y2="350" stroke="#007bff" stroke-width="3" />
-        <path d="M 390 60 L 400 50 L 410 60" fill="none" stroke="#007bff" stroke-width="3" />
-        <path d="M 390 340 L 400 350 L 410 340" fill="none" stroke="#007bff" stroke-width="3" />
-
-        <circle th:cx="${400 - lensModel.Focus}" cy="200" r="3" fill="red" />
-        <text th:x="${400 - lensModel.Focus - 10}" y="220">F</text>
-        <circle th:cx="${400 + lensModel.Focus}" cy="200" r="3" fill="red" />
-        <text th:x="${400 + lensModel.Focus - 10}" y="220">F</text>
-
-        <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="200"
-              th:x2="${400 - lensModel.ObjectDistance}" th:y2="${200 - lensModel.ObjectHeight}"
-              stroke="green" stroke-width="4" />
-        <text th:x="${400 - lensModel.ObjectDistance - 20}" th:y="${200 - lensModel.ObjectHeight - 5}">Предмет</text>
-
-        <g th:if="${lensModel.IsValid}">
-            <line th:x1="${400 + lensModel.ImageDistance}" th:y1="200"
-                  th:x2="${400 + lensModel.ImageDistance}"
-                  th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - lensModel.ImageHeight}"
-                  stroke="red" stroke-width="4" stroke-dasharray="4" />
-            <text th:x="${400 + lensModel.ImageDistance + 5}"
-                  th:y="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight + 15 : 200 - lensModel.ImageHeight - 5}">
-                Изображение
-            </text>
-
-            <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="${200 - lensModel.ObjectHeight}"
-                  th:x2="${400 + lensModel.ImageDistance}" th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - lensModel.ImageHeight}"
-                  stroke="orange" stroke-width="1" opacity="0.5" />
-        </g>
-    </svg>
 </div>
 
 </body>

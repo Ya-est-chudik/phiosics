@@ -24,24 +24,28 @@ public class Model {
         IsValid = Focus > 0 & ObjectDistance != 0 & Focus != ObjectDistance;
     }
 
-    public void checkImageType(){
-
-        // Вносим в переменную данные о типе изображения
+    public void checkImageType() {
         if (IsValid) {
-            if (Focus > 0) {
+            // Главное исправление: тип зависит от дистанции до изображения
+            if (ImageDistance > 0) {
                 ImageType = "Действительное, перевёрнутое, ";
-            } else if (Focus < 0) {
+            } else {
                 ImageType = "Мнимое, прямое, ";
             }
+
             if (IncreaseLens < 1) {
                 ImageType += "уменьшенное";
-            } else if (IncreaseLens > 1){
+            } else if (IncreaseLens > 1) {
                 ImageType += "увеличенное";
             } else {
                 ImageType += "в натуральную величину";
             }
         } else {
-            ImageType = "Нет изображения ";
+            if (ObjectDistance == Focus) {
+                ImageType = "Изображение в бесконечности";
+            } else {
+                ImageType = "Нет изображения (ошибка ввода)";
+            }
         }
     }
     // Конец функций проверки
