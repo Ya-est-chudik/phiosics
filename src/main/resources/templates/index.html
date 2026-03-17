@@ -2,169 +2,167 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Симуляция линзы — Полный экран</title>
+    <title>Optics Lab — Material 3</title>
     <style>
-        /* Сбрасываем отступы и растягиваем на весь экран */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            overflow: hidden; /* Убираем прокрутку страницы */
+        /* Material 3 Тоновые палитры */
+        :root {
+            --m3-surface: #f7f9ff;
+            --m3-surface-container: #eff1f8;
+            --m3-primary: #005ac1;
+            --m3-on-primary: #ffffff;
+            --m3-secondary-container: #d8e2ff;
+            --m3-on-secondary-container: #001a41;
+            --m3-outline: #74777f;
+            --m3-error: #ba1a1a;
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-        .main-wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 15px;
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.2, 0, 0, 1); }
 
-        /* Панель управления сверху */
-        .controls-panel {
-            background: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 0.85rem; color: #666; font-weight: 600; }
-        input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            width: 80px;
-            transition: border 0.3s;
-        }
-        input:focus { border-color: #007bff; outline: none; }
-
-        button {
-            padding: 10px 25px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button:hover { background: #0056b3; }
-
-        /* Информационная плашка */
-        .status-bar {
-            background: #e9ecef;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            display: flex;
-            gap: 20px;
-            border-left: 4px solid #007bff;
-        }
-
-        /* Контейнер для SVG */
-        .viewport {
-            flex-grow: 1; /* Занимает всё свободное место */
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            background-color: var(--m3-surface);
+            font-family: var(--font-main);
+            color: #1a1c1e;
+            display: flex; flex-direction: column;
             overflow: hidden;
         }
 
-        /* Делаем SVG адаптивным */
-        svg {
-            width: 100%;
-            height: 100%;
-            max-height: 100%;
+        .main-container {
+            display: flex; flex-direction: column; height: 100%;
+            padding: 24px; gap: 24px;
         }
+
+        /* Заголовок в стиле M3 */
+        header { padding-left: 8px; }
+        header h1 { margin: 0; font-size: 24px; font-weight: 400; color: #1a1c1e; }
+
+        /* Верхняя карточка управления (Surface Container) */
+        .top-app-bar {
+            background-color: var(--m3-surface-container);
+            border-radius: 28px;
+            padding: 24px 32px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .inputs-row { display: flex; gap: 32px; }
+
+        .m3-field { display: flex; flex-direction: column; gap: 12px; width: 200px; }
+
+        .m3-label {
+            font-size: 14px; font-weight: 500; color: var(--m3-outline);
+            display: flex; justify-content: space-between;
+        }
+
+        .m3-label span { color: var(--m3-primary); font-weight: 700; }
+
+        /* Ползунок Material 3 */
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 4px;
+            background: var(--m3-outline); border-radius: 2px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px;
+            background: var(--m3-primary); border-radius: 10px;
+            cursor: pointer; border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
+
+        /* Чипсы результатов (M3 Assist Chips) */
+        .stats-group { display: flex; gap: 12px; }
+        .m3-chip {
+            background-color: var(--m3-secondary-container);
+            color: var(--m3-on-secondary-container);
+            padding: 12px 20px; border-radius: 16px;
+            font-size: 14px; font-weight: 600;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Основная область (Large Surface Container) */
+        .simulation-canvas {
+            flex-grow: 1;
+            background-color: #ffffff;
+            border-radius: 28px;
+            position: relative;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--m3-surface-container);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        svg { width: 95%; height: 95%; }
+
+        .svg-label { font-size: 11px; font-weight: 700; fill: var(--m3-outline); text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper">
-    <form th:action="@{/update}" method="post" class="controls-panel">
-        <div class="input-group">
-            <label>Фокус (F)</label>
-            <input type="number" step="1" name="Focus" th:value="${lensModel.Focus}" required>
-        </div>
-        <div class="input-group">
-            <label>Дистанция (d)</label>
-            <input type="number" step="1" name="ObjectDistance" th:value="${lensModel.ObjectDistance}" required>
-        </div>
-        <div class="input-group">
-            <label>Высота (h)</label>
-            <input type="number" step="1" name="ObjectHeight" th:value="${lensModel.ObjectHeight}" required>
-        </div>
-        <button type="submit">Обновить схему</button>
+<div class="main-container">
+    <header>
+        <h1>Optics Experiment v3.0</h1>
+    </header>
 
-        <div class="status-bar">
-            <span><strong>Тип:</strong> <span th:text="${lensModel.ImageType}"></span></span>
-            <span><strong>f:</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageDistance, 1, 2)}"></span></span>
-            <span><strong>H:</strong> <span th:text="${#numbers.formatDecimal(lensModel.ImageHeight, 1, 2)}"></span></span>
-            <span><strong>IL:</strong> <span th:text="${#numbers.formatDecimal(lensModel.IncreaseLens, 1, 2)}"></span></span>
+    <form th:action="@{/update}" method="post" class="top-app-bar">
+        <div class="inputs-row">
+            <div class="m3-field">
+                <div class="m3-label">Фокус (F) <span th:text="${lensModel.Focus}"></span></div>
+                <input type="range" name="Focus" min="50" max="250" th:value="${lensModel.Focus}" oninput="this.form.submit()">
+            </div>
+            <div class="m3-field">
+                <div class="m3-label">Дистанция (d) <span th:text="${lensModel.ObjectDistance}"></span></div>
+                <input type="range" name="ObjectDistance" min="10" max="600" th:value="${lensModel.ObjectDistance}" oninput="this.form.submit()">
+            </div>
+            <div class="m3-field">
+                <div class="m3-label">Высота (h) <span th:text="${lensModel.ObjectHeight}"></span></div>
+                <input type="range" name="ObjectHeight" min="10" max="150" th:value="${lensModel.ObjectHeight}" oninput="this.form.submit()">
+            </div>
+        </div>
+
+        <div class="stats-group">
+            <div class="m3-chip">
+                Тип: <span th:text="${lensModel.ImageType}"></span>
+            </div>
+            <div class="m3-chip">
+                f = <span th:text="${#numbers.formatDecimal(lensModel.ImageDistance, 1, 1)}"></span>
+            </div>
+            <div class="m3-chip">
+                Г = <span th:text="${#numbers.formatDecimal(lensModel.IncreaseLens, 1, 2)}"></span>
+            </div>
         </div>
     </form>
 
-    <div class="viewport">
+    <div class="simulation-canvas">
         <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
-            <line x1="0" y1="200" x2="800" y2="200" stroke="#444" stroke-width="1" />
+            <line x1="0" y1="200" x2="800" y2="200" stroke="#c4c6cf" stroke-width="1" />
 
-            <line x1="400" y1="50" x2="400" y2="350" stroke="#007bff" stroke-width="3" />
-            <path d="M 390 65 L 400 50 L 410 65" fill="none" stroke="#007bff" stroke-width="3" />
-            <path d="M 390 335 L 400 350 L 410 335" fill="none" stroke="#007bff" stroke-width="3" />
+            <g>
+                <line x1="400" y1="50" x2="400" y2="350" stroke="var(--m3-primary)" stroke-width="4" stroke-linecap="round" />
+                <path d="M 390 65 L 400 50 L 410 65" fill="none" stroke="var(--m3-primary)" stroke-width="4" stroke-linecap="round" />
+                <path d="M 390 335 L 400 350 L 410 335" fill="none" stroke="var(--m3-primary)" stroke-width="4" stroke-linecap="round" />
+            </g>
 
-            <circle th:cx="${400 - lensModel.Focus}" cy="200" r="4" fill="red" />
-            <text th:x="${400 - lensModel.Focus - 10}" y="225" font-size="12">F</text>
-            <circle th:cx="${400 + lensModel.Focus}" cy="200" r="4" fill="red" />
-            <text th:x="${400 + lensModel.Focus - 10}" y="225" font-size="12">F</text>
+            <circle th:cx="${400 - lensModel.Focus}" cy="200" r="6" fill="var(--m3-error)" />
+            <circle th:cx="${400 + lensModel.Focus}" cy="200" r="6" fill="var(--m3-error)" />
+            <text th:x="${400 - lensModel.Focus - 8}" y="230" class="svg-label" style="fill: var(--m3-error)">F</text>
+            <text th:x="${400 + lensModel.Focus - 8}" y="230" class="svg-label" style="fill: var(--m3-error)">F'</text>
 
-            <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="200"
+            <line th:x1="${400 - lensModel.ObjectDistance}" y1="200"
                   th:x2="${400 - lensModel.ObjectDistance}" th:y2="${200 - lensModel.ObjectHeight}"
-                  stroke="green" stroke-width="4" />
+                  stroke="#2d6a4f" stroke-width="6" stroke-linecap="round" />
 
             <g th:if="${lensModel.IsValid}">
                 <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="${200 - lensModel.ObjectHeight}"
-                      th:x2="${lensModel.ImageDistance > 0 ? 400 + lensModel.ImageDistance : 400 + 100}"
-                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - (100 * (lensModel.ObjectHeight/lensModel.ObjectDistance))}"
-                      stroke="orange" stroke-width="1" stroke-dasharray="5,5" />
-
-                <line th:if="${lensModel.ImageDistance < 0}"
-                      x1="400" y1="200"
-                      th:x2="${400 + lensModel.ImageDistance}" th:y2="${200 - lensModel.ImageHeight}"
-                      stroke="orange" stroke-width="1" stroke-dasharray="2,2" />
-
-                <line th:x1="${400 - lensModel.ObjectDistance}" th:y1="${200 - lensModel.ObjectHeight}"
-                      x2="400" th:y2="${200 - lensModel.ObjectHeight}"
-                      stroke="blue" stroke-width="1" stroke-dasharray="5,5" />
-
-                <line x1="400" th:y1="${200 - lensModel.ObjectHeight}"
-                      th:x2="${lensModel.ImageDistance > 0 ? 400 + lensModel.ImageDistance : 400 + lensModel.Focus + 100}"
-                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 + (100 * (lensModel.ObjectHeight/lensModel.Focus))}"
-                      stroke="blue" stroke-width="1" stroke-dasharray="5,5" />
-
-                <line th:if="${lensModel.ImageDistance < 0}"
-                      x1="400" th:y1="${200 - lensModel.ObjectHeight}"
-                      th:x2="${400 + lensModel.ImageDistance}" th:y2="${200 - lensModel.ImageHeight}"
-                      stroke="blue" stroke-width="1" stroke-dasharray="2,2" />
-
-                <line th:x1="${400 + lensModel.ImageDistance}" th:y1="200"
                       th:x2="${400 + lensModel.ImageDistance}"
                       th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - lensModel.ImageHeight}"
-                      th:stroke="${lensModel.ImageDistance > 0 ? 'red' : 'purple'}"
-                      th:stroke-dasharray="${lensModel.ImageDistance < 0 ? '8,4' : '0'}"
-                      stroke-width="4" />
+                      stroke="var(--m3-outline)" stroke-width="1" stroke-dasharray="6,6" />
+
+                <line th:x1="${400 + lensModel.ImageDistance}" y1="200"
+                      th:x2="${400 + lensModel.ImageDistance}"
+                      th:y2="${lensModel.ImageDistance > 0 ? 200 + lensModel.ImageHeight : 200 - lensModel.ImageHeight}"
+                      th:stroke="${lensModel.ImageDistance > 0 ? 'var(--m3-primary)' : 'purple'}"
+                      th:stroke-dasharray="${lensModel.ImageDistance < 0 ? '10,5' : '0'}"
+                      stroke-width="6" stroke-linecap="round" />
             </g>
         </svg>
     </div>
