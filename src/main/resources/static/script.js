@@ -13,6 +13,14 @@ const ui = {
     nh: document.getElementById('num-h'),
     type: document.getElementById('obj-type')
 };
+let zoomLevel = 0.5; // Базовый множитель зума
+
+function changeZoom(factor) {
+    zoomLevel *= factor;
+    if (zoomLevel < 0) zoomLevel = 0.01;
+    if (zoomLevel > 5.0) zoomLevel = 5.0;
+    update();
+}
 
 function init() {
     window.addEventListener('resize', resize);
@@ -120,7 +128,11 @@ function draw(F, d, h, f_img, H_img) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const scale = (canvas.width / 2.8) / Math.max(d, Math.abs(f_img || 0), F * 2.5);
+
+    const safe_f = isFinite(f_img) ? Math.abs(f_img) : F * 3;
+    const baseScale = (canvas.width / 1.6) / Math.max(d, safe_f, F * 2.2);
+    const scale = baseScale * zoomLevel;
+
     // Сетка: жесткая привязка к центру через смещение координат
     ctx.strokeStyle = 'rgba(0, 242, 255, 0.1)';
     const step = 40;
@@ -146,17 +158,18 @@ function draw(F, d, h, f_img, H_img) {
         ctx.font = '24px sans-serif'; ctx.fillText(p.l, x - 10, centerY + 25);
     });
     //Линза + подставка
-    const lH = 200, lW = 64;
+    const lH = 300;
+    const lW = 80;
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.ellipse(0, lH + 80, 25, 6, 0, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.moveTo(0, lH); ctx.lineTo(0, lH + 78); ctx.stroke();
+    ctx.beginPath(); ctx.lineWidth = 3; ctx.ellipse(0, lH + 160, 40, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
+    ctx.beginPath(); ctx.lineWidth = 3; ctx.moveTo(0, lH); ctx.lineTo(0, lH + 154); ctx.stroke();
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     // ось линзы
     ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.beginPath(); ctx.lineWidth = 2.5; ctx.moveTo(0, lH); ctx.lineTo(0, lH - 460); ctx.stroke();
+    ctx.beginPath(); ctx.lineWidth = 2.5; ctx.moveTo(0, lH); ctx.lineTo(0, lH - 700); ctx.stroke();
 
     ctx.shadowBlur = 20; ctx.shadowColor = '#00f2ff';
     ctx.strokeStyle = '#00f2ff';
