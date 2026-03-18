@@ -34,13 +34,13 @@ body {
 .main-layout {
     display: flex;
     flex: 1;
-    padding: 15px;
-    gap: 15px;
+    padding: 20px;
+    gap: 20px;
     min-height: 0;
 }
 
 .simulation-view {
-    flex: 2;
+    flex: 1.5;
     background: #080810;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -56,25 +56,25 @@ canvas {
 
 .side-panel {
     flex: 1;
-    max-width: 380px;
+    max-width: 480px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
     overflow-y: auto;
     padding-right: 5px;
 }
 
 .glass-card {
     background: var(--panel-bg);
-    border-radius: 20px;
-    padding: 18px;
+    border-radius: 24px;
+    padding: 25px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
 }
 
 label {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     margin-bottom: 5px;
     color: #94a3b8;
     text-transform: none;
@@ -88,7 +88,7 @@ label {
     gap: 4px;
     color: var(--accent-cyan);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     text-transform: none;
 }
 
@@ -96,12 +96,12 @@ label {
 .val-input {
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+    border-bottom: 2px solid rgba(0, 242, 255, 0.2);
     color: var(--accent-cyan);
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    font-size: 0.85rem;
-    width: 45px;
+    font-size: 1.1rem;
+    width: 60px;
     text-align: right;
     outline: none;
     padding: 0;
@@ -130,7 +130,7 @@ input[type=range] {
 
 select {
     width: 100%;
-    padding: 10px;
+    padding: 14px;
     background: #11111d;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -147,14 +147,14 @@ select {
 }
 
 .btn {
-    padding: 12px;
+    padding: 16px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     font-family: 'Inter';
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .btn-add {
@@ -176,9 +176,9 @@ select {
 .res-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    font-size: 0.85rem;
+    font-size: 1.05rem;
 }
 
 .res-val {
@@ -215,6 +215,52 @@ td {
 .err-line {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     margin-bottom: 4px;
+}
+/* Блок управления зумом */
+.zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(15, 15, 25, 0.7); /* Тот же 'glass' эффект, но прозрачнее */
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+/* Иконка лупы */
+.zoom-icon {
+    font-size: 1.5rem;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+}
+
+.zoom-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+
+.zoom-buttons button {
+    background: transparent;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    color: var(--accent-cyan);
+    font-size: 1.2rem;
+    font-weight: 600;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.zoom-buttons button:hover {
+    background: var(--accent-cyan);
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
 }
