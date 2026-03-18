@@ -16,9 +16,9 @@ public class SimulationController {
     @GetMapping("/")
     public String index(ModelMap modelMap) {
         Model lensModel = new Model();
-        lensModel.setFocus(100);
-        lensModel.setObjectDistance(150);
-        lensModel.setObjectHeight(50);
+        lensModel.setFocus(10);
+        lensModel.setObjectDistance(15);
+        lensModel.setObjectHeight(5);
         performCalculations(lensModel);
         modelMap.addAttribute("lensModel", lensModel);
         return "index";
