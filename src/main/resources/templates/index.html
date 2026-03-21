@@ -73,15 +73,29 @@
                         <th>F_расч</th>
                     </tr>
                     </thead>
-                    <tbody id="log-body"></tbody>
+                    <tbody id="log-body">
+                    <tr th:each="measure, iterStat : ${measurements}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${#numbers.formatDecimal(measure.objectDistance, 1, 1)}"></td>
+                        <td th:text="${#numbers.formatDecimal(measure.imageDistance, 1, 1)}"></td>
+                        <td th:text="${#numbers.formatDecimal(measure.calculatedFocus, 1, 2)}"></td>
+                    </tr>
+                    </tbody>
                 </table>
             </div>
 
             <div class="error-box">
-                <div class="err-line"><span>Системная (Δs):</span><span style="color:#fff">0.10 см</span></div>
-                <div class="err-line"><span>Случайная (Δe):</span><span id="err-exp" style="color:#fff">0.00 см</span></div>
+                <div class="err-line">
+                    <span>Системная (Δs):</span>
+                    <span style="color:#fff" th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
+                </div>
+                <div class="err-line">
+                    <span>Случайная (Δe):</span>
+                    <span id="err-exp" style="color:#fff" th:text="${errorStats.randomError} + ' см'">0.00 см</span>
+                </div>
                 <div class="err-line" style="margin-top:8px; font-weight:600; color:var(--accent-cyan)">
-                    <span>ИТОГО ΔF:</span><span id="err-total">0.10 см</span>
+                    <span>ИТОГО ΔF:</span>
+                    <span id="err-total" th:text="${errorStats.totalError} + ' см'">0.10 см</span>
                 </div>
             </div>
 

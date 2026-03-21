@@ -2,7 +2,7 @@ const canvas = document.getElementById('opticsCanvas');
 const ctx = canvas.getContext('2d');
 const palette = ['#ffeb3b', '#ff00ff', '#bf5af2', '#00f2ff'];
 let currentObjColor = palette[0];
-let measurements = [];
+let zoomLevel = 0.5;
 
 const ui = {
     f: document.getElementById('f-range'),
@@ -13,7 +13,6 @@ const ui = {
     nh: document.getElementById('num-h'),
     type: document.getElementById('obj-type')
 };
-let zoomLevel = 0.5; // Базовый множитель зума
 
 function changeZoom(factor) {
     zoomLevel *= factor;
@@ -79,42 +78,67 @@ async function update() {
     }
 }
 
-function addMeasurement() {
-    const F_set = parseFloat(ui.f.value);
+async function addMeasurement() {
+    const F = parseFloat(ui.f.value);
     const d = parseFloat(ui.d.value);
-    if (Math.abs(d - F_set) < 0.1) return;
-    const f_ideal = (d * F_set) / (d - F_set);
-    const noise = (Math.random() - 0.5) * 0.15;
-    const d_m = d + noise;
-    const f_m = f_ideal + noise;
-    const F_calc = (d_m * f_m) / (d_m + f_m);
-    measurements.push({ d: d_m.toFixed(1), f: f_m.toFixed(1), F: F_calc });
-    renderLog();
-}
-//БУДЕТ ИЗМНЕНЕНО
-function resetMeasurements() {
-    measurements = [];
-    renderLog();
-    document.getElementById('err-exp').innerText = '0.00 см';
-    document.getElementById('err-total').innerText = '0.10 см';
-}
 
-function renderLog() {
-    const body = document.getElementById('log-body');
-    body.innerHTML = measurements.map((m, i) =>
-        `<tr><td>${i + 1}</td><td>${m.d}</td><td>${m.f}</td><td>${m.F.toFixed(2)}</td></tr>`
-    ).join('');
-
-    if (measurements.length > 1) {
-        const Fs = measurements.map(m => m.F);
-        const avgF = Fs.reduce((a, b) => a + b) / Fs.length;
-        const variance = Fs.reduce((a, b) => a + Math.pow(b - avgF, 2), 0) / (Fs.length * (Fs.length - 1));
-        const randErr = Math.sqrt(variance) * 2.5;
-        const systErr = 0.1;
-        const totalErr = Math.sqrt(Math.pow(systErr, 2) + Math.pow(randErr, 2));
-        document.getElementById('err-exp').innerText = randErr.toFixed(3) + ' см';
-        document.getElementById('err-total').innerText = totalErr.toFixed(3) + ' см';
+    if (Math.abs(d - F) < 0.1) {
+        alert('Невозможно добавить измерение при d = F');
+        return;
     }
+
+    try {
+        const response = await fetch('/api/measurement/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ Focus: F, ObjectDistance: d })
+        });
+
+        const errorStats = await response.json();
+        updateErrorDisplay(errorStats);
+
+        // Обновляем таблицу измерений
+        await updateMeasurementsTable();
+
+    } catch (e) {
+        console.error('Ошибка при добавлении измерения', e);
+    }
+}
+
+async function resetMeasurements() {
+    try {
+        const response = await fetch('/api/measurement/reset', {
+            method: 'POST'
+        });
+
+        const errorStats = await response.json();
+        updateErrorDisplay(errorStats);
+
+        // Обновляем таблицу измерений
+        await updateMeasurementsTable();
+
+    } catch (e) {
+        console.error('Ошибка при сбросе измерений', e);
+    }
+}
+
+async function updateMeasurementsTable() {
+    try {
+        const response = await fetch('/api/measurements');
+        const errorStats = await response.json();
+
+        // Здесь можно обновить таблицу через AJAX или просто перезагрузить страницу
+        // Для простоты предлагаю перезагружать страницу
+        window.location.reload();
+
+    } catch (e) {
+        console.error('Ошибка при обновлении таблицы', e);
+    }
+}
+
+function updateErrorDisplay(errorStats) {
+    document.getElementById('err-exp').innerText = errorStats.randomError.toFixed(3) + ' см';
+    document.getElementById('err-total').innerText = errorStats.totalError.toFixed(3) + ' см';
 }
 
 function resize() {
@@ -122,7 +146,6 @@ function resize() {
     canvas.height = canvas.offsetHeight;
     update();
 }
-
 
 function draw(F, d, h, f_img, H_img) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

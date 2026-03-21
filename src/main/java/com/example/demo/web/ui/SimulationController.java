@@ -1,17 +1,19 @@
 package com.example.demo.web.ui;
 
 import com.example.demo.model.Model;
+import com.example.demo.service.ErrorCalculator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @Controller
 public class SimulationController {
+
+    @Autowired
+    private ErrorCalculator errorCalculator;
 
     @GetMapping("/")
     public String index(ModelMap modelMap) {
@@ -20,10 +22,13 @@ public class SimulationController {
         lensModel.setObjectDistance(15);
         lensModel.setObjectHeight(5);
         performCalculations(lensModel);
+
         modelMap.addAttribute("lensModel", lensModel);
+        modelMap.addAttribute("measurements", errorCalculator.getMeasurements());
+        modelMap.addAttribute("errorStats", errorCalculator.getErrorStats());
+
         return "index";
     }
-
 
     @PostMapping("/api/update")
     @ResponseBody
@@ -38,6 +43,29 @@ public class SimulationController {
         lensModel.setObjectHeight(ObjectHeight);
         performCalculations(lensModel);
         return lensModel;
+    }
+
+    @PostMapping("/api/measurement/add")
+    @ResponseBody
+    public ErrorCalculator.ErrorStats addMeasurement(
+            @RequestParam float Focus,
+            @RequestParam float ObjectDistance) {
+
+        errorCalculator.addMeasurement(Focus, ObjectDistance);
+        return errorCalculator.getErrorStats();
+    }
+
+    @PostMapping("/api/measurement/reset")
+    @ResponseBody
+    public ErrorCalculator.ErrorStats resetMeasurements() {
+        errorCalculator.resetMeasurements();
+        return errorCalculator.getErrorStats();
+    }
+
+    @GetMapping("/api/measurements")
+    @ResponseBody
+    public ErrorCalculator.ErrorStats getMeasurements() {
+        return errorCalculator.getErrorStats();
     }
 
     private void performCalculations(Model lensModel) {
