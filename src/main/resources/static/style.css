@@ -18,6 +18,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .neon-header {
@@ -29,6 +30,7 @@ body {
     text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
     text-transform: uppercase;
     font-size: 2rem;
+    transition: all 0.3s ease;
 }
 
 .main-layout {
@@ -46,6 +48,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
+    transition: background 0.3s ease, border 0.3s ease;
 }
 
 canvas {
@@ -70,6 +73,7 @@ canvas {
     padding: 25px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(15px);
+    transition: all 0.3s ease;
 }
 
 label {
@@ -107,7 +111,6 @@ label {
     padding: 0;
     transition: border-color 0.2s;
     -moz-appearance: textfield;
-    /* Убирает стрелки в Firefox */
 }
 
 /* Убирает стрелки */
@@ -137,6 +140,7 @@ select {
     border-radius: 10px;
     outline: none;
     margin-bottom: 10px;
+    transition: all 0.3s ease;
 }
 
 .btn-group {
@@ -210,6 +214,7 @@ td {
     background: rgba(0, 242, 255, 0.03);
     border-radius: 12px;
     border: 1px dashed rgba(0, 242, 255, 0.2);
+    transition: all 0.3s ease;
 }
 
 .err-line {
@@ -218,6 +223,7 @@ td {
     font-size: 0.9rem;
     margin-bottom: 4px;
 }
+
 /* Блок управления зумом */
 .zoom-controls {
     position: absolute;
@@ -226,11 +232,12 @@ td {
     display: flex;
     align-items: center;
     gap: 15px;
-    background: rgba(15, 15, 25, 0.7); /* Тот же 'glass' эффект, но прозрачнее */
+    background: rgba(15, 15, 25, 0.7);
     padding: 10px 15px;
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
 }
 
 /* Иконка лупы */
@@ -238,13 +245,13 @@ td {
     font-size: 1.5rem;
     color: var(--accent-cyan);
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+    transition: all 0.3s ease;
 }
 
 .zoom-buttons {
     display: flex;
     gap: 8px;
 }
-
 
 .zoom-buttons button {
     background: transparent;
@@ -263,4 +270,143 @@ td {
     background: var(--accent-cyan);
     color: #000;
     box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+}
+
+.zoom-level {
+    color: var(--accent-cyan);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 5px;
+    transition: all 0.3s ease;
+}
+
+/* Стиль кнопки темы */
+/* Стиль кнопки темы - в левом верхнем углу */
+.theme-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: var(--panel-bg);
+    color: var(--accent-cyan);
+    font-size: 1.5rem;
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    min-width: 60px;
+    height: auto;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+    font-weight: 600;
+}
+
+.theme-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px var(--accent-cyan);
+    background: var(--accent-cyan);
+    color: #000;
+    border-color: var(--accent-cyan);
+}
+
+/* Светлая тема для кнопки */
+body.light-mode .theme-btn {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(0, 113, 227, 0.3);
+}
+
+body.light-mode .theme-btn:hover {
+    background: var(--accent-cyan);
+    color: #fff;
+    box-shadow: 0 0 30px var(--accent-cyan);
+}
+
+/* Светлая тема */
+body.light-mode {
+    --bg-dark: #f0f2f5;
+    --panel-bg: rgba(255, 255, 255, 0.95);
+    --accent-cyan: #0071e3;
+    --accent-purple: #8622d1;
+    --accent-red: #d70015;
+    color: #1d1d1f;
+}
+
+body.light-mode .simulation-view {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .neon-header {
+    text-shadow: none;
+    color: #1d1d1f;
+}
+
+body.light-mode select {
+    background: #ffffff;
+    color: #000;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .val-input {
+    background: transparent;
+    color: #000;
+    border-bottom-color: rgba(0, 113, 227, 0.2);
+}
+
+body.light-mode .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .zoom-controls {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .zoom-icon {
+    color: var(--accent-cyan);
+}
+
+body.light-mode .zoom-buttons button {
+    border-color: rgba(0, 113, 227, 0.3);
+    color: var(--accent-cyan);
+}
+
+body.light-mode .zoom-buttons button:hover {
+    background: var(--accent-cyan);
+    color: #fff;
+}
+
+body.light-mode .zoom-level {
+    color: var(--accent-cyan);
+}
+
+body.light-mode .error-box {
+    background: rgba(0, 113, 227, 0.05);
+    border-color: rgba(0, 113, 227, 0.2);
+}
+
+body.light-mode .res-val {
+    color: var(--accent-cyan);
+}
+
+body.light-mode .res-row {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode td {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .theme-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
 }

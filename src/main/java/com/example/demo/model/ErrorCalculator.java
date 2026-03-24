@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class ErrorCalculator {
     private static final double SYSTEMATIC_ERROR = 0.10; // системная погрешность в см
 
     private List<Measurement> measurements = new ArrayList<>();
-
+    @Getter
     public static class Measurement {
         private double objectDistance;  // d
         private double imageDistance;   // f (расчетное)
@@ -24,9 +25,6 @@ public class ErrorCalculator {
             this.calculatedFocus = calculatedFocus;
         }
 
-        public double getObjectDistance() { return objectDistance; }
-        public double getImageDistance() { return imageDistance; }
-        public double getCalculatedFocus() { return calculatedFocus; }
     }
 
     // Добавление измерения с учетом случайной погрешности
