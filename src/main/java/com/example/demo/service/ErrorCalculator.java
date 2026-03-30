@@ -105,7 +105,7 @@ public class ErrorCalculator {
 
         return new ErrorStats(randomError, SYSTEMATIC_ERROR, totalError, measurements.size());
     }
-
+    @Getter
     public static class ErrorStats {
         private final double randomError;
         private final double systematicError;
@@ -113,15 +113,11 @@ public class ErrorCalculator {
         private final int measurementsCount;
 
         public ErrorStats(double randomError, double systematicError, double totalError, int measurementsCount) {
-            this.randomError = randomError;
-            this.systematicError = systematicError;
-            this.totalError = totalError;
+            this.randomError = (double) Math.round(randomError * 100) / 100;
+            this.systematicError = (double) Math.round(systematicError * 100) / 100;
+            this.totalError = (double) Math.round(totalError * 100) / 100;
             this.measurementsCount = measurementsCount;
         }
 
-        public double getRandomError() { return randomError; }
-        public double getSystematicError() { return systematicError; }
-        public double getTotalError() { return totalError; }
-        public int getMeasurementsCount() { return measurementsCount; }
     }
 }

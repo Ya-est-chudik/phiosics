@@ -357,7 +357,7 @@ body.light-mode select {
 
 body.light-mode .val-input {
     background: transparent;
-    color: #000;
+    color: var(--accent-cyan);
     border-bottom-color: rgba(0, 113, 227, 0.2);
 }
 

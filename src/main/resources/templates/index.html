@@ -88,11 +88,11 @@
             <div class="error-box">
                 <div class="err-line">
                     <span>Системная (Δs):</span>
-                    <span style="color:#fff" th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
+                    <span  th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
                 </div>
                 <div class="err-line">
                     <span>Случайная (Δe):</span>
-                    <span id="err-exp" style="color:#fff" th:text="${errorStats.randomError} + ' см'">0.00 см</span>
+                    <span id="err-exp" th:text="${errorStats.randomError} + ' см'">0.00 см</span>
                 </div>
                 <div class="err-line" style="margin-top:8px; font-weight:600; color:var(--accent-cyan)">
                     <span>ИТОГО ΔF:</span>
