@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div class="neon-header">Построение изображений в собирающей линзе</div>
+<div class="neon-header">Построение изображений в линзе</div>
 
 <div class="main-layout">
     <div class="simulation-view">
@@ -19,17 +19,24 @@
                 <button onclick="changeZoom(1.2)">+</button>
                 <button onclick="changeZoom(0.8)">-</button>
             </div>
+            <div id="zoom-level" class="zoom-level">100%</div>
         </div>
     </div>
 
     <div class="side-panel">
         <div class="glass-card">
+            <label>Тип линзы</label>
+            <select id="lens-type">
+                <option value="converging">Собирающая (Выпуклая)</option>
+                <option value="diverging">Рассеивающая (Вогнутая)</option>
+            </select>
+
             <label>Предмет</label>
             <select id="obj-type">
                 <option value="arrow">Стрелка</option>
                 <option value="pencil">Карандаш</option>
                 <option value="candle">Свеча</option>
-                <option value="book">Книга по вайбкодигу</option>
+                <option value="book">Книга по вайбкодингу</option>
             </select>
 
             <label>Фокус (F)
@@ -86,7 +93,7 @@
             <div class="error-box">
                 <div class="err-line">
                     <span>Системная (Δs):</span>
-                    <span  th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
+                    <span th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
                 </div>
                 <div class="err-line">
                     <span>Случайная (Δe):</span>

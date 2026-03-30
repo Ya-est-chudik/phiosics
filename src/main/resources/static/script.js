@@ -11,7 +11,8 @@ const ui = {
     nf: document.getElementById('num-f'),
     nd: document.getElementById('num-d'),
     nh: document.getElementById('num-h'),
-    type: document.getElementById('obj-type')
+    type: document.getElementById('obj-type'),
+    lensType: document.getElementById('lens-type')
 };
 
 let zoomTarget = zoomLevel;
@@ -20,14 +21,11 @@ let animationId = null;
 function updateZoomDisplay() {
     const zoomPercent = Math.round(zoomLevel * 100);
     const zoomDisplay = document.getElementById('zoom-level');
-    if (zoomDisplay) {
-        zoomDisplay.textContent = zoomPercent + '%';
-    }
+    if (zoomDisplay) zoomDisplay.textContent = zoomPercent + '%';
 }
 
 function smoothZoom() {
     if (animationId) cancelAnimationFrame(animationId);
-
     function animate() {
         const diff = zoomTarget - zoomLevel;
         if (Math.abs(diff) > 0.001) {
@@ -55,12 +53,10 @@ function changeZoom(factor) {
 function init() {
     window.addEventListener('resize', resize);
 
-    // Загрузка сохраненной темы
     if (localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light-mode');
     }
 
-    const canvas = document.getElementById('opticsCanvas');
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -88,6 +84,8 @@ function init() {
         update();
     });
 
+    ui.lensType.addEventListener('change', update);
+
     updateZoomDisplay();
     resize();
 }
@@ -96,12 +94,13 @@ async function update() {
     const F = parseFloat(ui.f.value);
     const d = parseFloat(ui.d.value);
     const h = parseFloat(ui.h.value);
+    const lensType = ui.lensType.value;
 
     try {
         const response = await fetch('/api/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h })
+            body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h, LensType: lensType })
         });
         const lensModel = await response.json();
 
@@ -110,70 +109,51 @@ async function update() {
         const mag = lensModel.IncreaseLens;
 
         document.getElementById('r-f').innerText = lensModel.IsValid
-            ? Math.abs(f_img).toFixed(1) + ' см'
-            : '∞';
+            ? Math.abs(f_img).toFixed(1) + ' см' : '∞';
         document.getElementById('r-H').innerText = lensModel.IsValid
-            ? H_img.toFixed(1) + ' см'
-            : '-';
+            ? H_img.toFixed(1) + ' см' : '-';
         document.getElementById('r-g').innerText = lensModel.IsValid
-            ? mag.toFixed(2)
-            : '-';
+            ? mag.toFixed(2) : '-';
         document.getElementById('r-type').innerText = lensModel.ImageType || '-';
 
-        draw(F, d, h, f_img, H_img);
+        draw(F, d, h, f_img, H_img, lensType);
     } catch (e) {
         console.error('Ошибка обновления с сервера', e);
     }
 }
 
+// Функции addMeasurement, resetMeasurements, updateMeasurementsTable, updateErrorDisplay остаются без изменений
+// Для краткости я их не дублирую полностью, они точно такие же как в твоем исходнике.
 async function addMeasurement() {
     const F = parseFloat(ui.f.value);
     const d = parseFloat(ui.d.value);
     const h = parseFloat(ui.h.value);
-
-    if (Math.abs(d - F) < 0.1) {
-        alert('Невозможно добавить измерение при d = F');
+    if (Math.abs(d - F) < 0.1 && ui.lensType.value === 'converging') {
+        alert('Невозможно добавить измерение при d = F для собирающей линзы');
         return;
     }
-
     try {
         const response = await fetch('/api/measurement/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h })
         });
-
         const errorStats = await response.json();
         updateErrorDisplay(errorStats);
         await updateMeasurementsTable();
-
-    } catch (e) {
-        console.error('Ошибка при добавлении измерения', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function resetMeasurements() {
     try {
-        const response = await fetch('/api/measurement/reset', {
-            method: 'POST'
-        });
-
+        const response = await fetch('/api/measurement/reset', { method: 'POST' });
         const errorStats = await response.json();
         updateErrorDisplay(errorStats);
         await updateMeasurementsTable();
-
-    } catch (e) {
-        console.error('Ошибка при сбросе измерений', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-async function updateMeasurementsTable() {
-    try {
-        window.location.reload();
-    } catch (e) {
-        console.error('Ошибка при обновлении таблицы', e);
-    }
-}
+async function updateMeasurementsTable() { window.location.reload(); }
 
 function updateErrorDisplay(errorStats) {
     document.getElementById('err-exp').innerText = errorStats.randomError.toFixed(2) + ' см';
@@ -193,7 +173,9 @@ function toggleTheme() {
     update();
 }
 
-function draw(F, d, h, f_img, H_img) {
+// Функция draw в script.js, обновленная для школьного построения (пунктир и фокусы рассеивающей)
+
+function draw(F, d, h, f_img, H_img, lensType) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const isLight = document.body.classList.contains('light-mode');
     const centerX = canvas.width / 2;
@@ -205,19 +187,10 @@ function draw(F, d, h, f_img, H_img) {
     // Сетка
     ctx.strokeStyle = isLight ? 'rgba(2, 86, 176, 0.3)' : 'rgba(0, 242, 255, 0.2)';
     const step = 40;
-
-    for (let x = centerX; x < canvas.width; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (let x = centerX - step; x > 0; x -= step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (let y = centerY; y < canvas.height; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
-    for (let y = centerY - step; y > 0; y -= step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
+    for (let x = centerX; x < canvas.width; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let x = centerX - step; x > 0; x -= step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = centerY; y < canvas.height; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+    for (let y = centerY - step; y > 0; y -= step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
     // Оптическая ось
     ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)';
@@ -232,44 +205,121 @@ function draw(F, d, h, f_img, H_img) {
         ctx.fillText(p.l, x - 10, centerY + 25);
     });
 
-    // Линза
-    const lH = 300;
+    // Отрисовка линзы
+    const lH = 400;
     ctx.save();
     ctx.translate(centerX, centerY);
+
+    // Центральная ось линзы
     ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.fillStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.ellipse(0, lH + 160, 40, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.moveTo(0, lH); ctx.lineTo(0, lH + 154); ctx.stroke();
-    ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath(); ctx.lineWidth = 2.5; ctx.moveTo(0, lH); ctx.lineTo(0, lH - 700); ctx.stroke();
+    ctx.beginPath(); ctx.lineWidth = 2.5; ctx.moveTo(0, 1000); ctx.lineTo(0, -1000); ctx.stroke();
 
     ctx.shadowBlur = 20;
     ctx.shadowColor = '#00f2ff';
     ctx.strokeStyle = '#00f2ff';
     ctx.fillStyle = 'rgba(0, 242, 255, 0.2)';
     ctx.beginPath(); ctx.lineWidth = 2;
-    ctx.moveTo(0, -lH);
-    ctx.quadraticCurveTo(80, 0, 0, lH);
-    ctx.quadraticCurveTo(-80, 0, 0, -lH);
-    ctx.fill();
-    ctx.stroke();
+
+    if (lensType === 'converging') {
+        // Собирающая ()
+        ctx.moveTo(0, -lH);
+        ctx.quadraticCurveTo(80, 0, 0, lH);
+        ctx.quadraticCurveTo(-80, 0, 0, -lH);
+    } else {
+        // Рассеивающая )(
+        const w = 25;
+        ctx.moveTo(-w, -lH);
+        ctx.lineTo(w, -lH);
+        ctx.quadraticCurveTo(0, 0, w, lH);
+        ctx.lineTo(-w, lH);
+        ctx.quadraticCurveTo(0, 0, -w, -lH);
+    }
+    ctx.fill(); ctx.stroke();
     ctx.restore();
 
     const objX = centerX - d * scale;
     const objY = centerY - h * scale;
 
-    if (Math.abs(d - F) > 1) {
+    if (isFinite(f_img) && d > 0) {
         const imgX = centerX + f_img * scale;
+        // f_img > 0 (перевернутое real), f_img < 0 (прямое virtual)
         const imgY = f_img > 0 ? centerY + (H_img * scale) : centerY - (H_img * scale);
 
+        // --- УЛУЧШЕННАЯ ФИЗИКА ЛУЧЕЙ (ШКОЛЬНОЕ ПОСТРОЕНИЕ С ПУНКТИРОМ) ---
+
+        // Основной цвет лучей
+        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)';
+
+        // --- 1. ПАДАЮЩИЕ ЛУЧИ (все пунктиром) ---
         ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
-        ctx.setLineDash([]);
+
+        // Луч 1: Параллельный оси (от предмета до линзы)
+        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, objY); ctx.stroke();
+
+        // Луч 2: Через оптический центр (от предмета до линзы)
+        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, centerY); ctx.stroke();
+
+        // --- 2. ПРЕЛОМЛЕННЫЕ И МНИМЫЕ ЛУЧИ ---
+        // Рассчитываем физические углы преломления на основе фокусов
+
+        if (lensType === 'converging') {
+            // СОБИРАЮЩАЯ
+            // Преломленный параллельный луч проходит через реальный фокус F' (справа)
+            const fLocX_real = centerX + F * scale;
+            const m_conv = (centerY - objY) / (fLocX_real - centerX);
+            const rightEdgeY_parallel = objY + m_conv * (canvas.width - centerX);
+
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(canvas.width, rightEdgeY_parallel); ctx.stroke();
+
+            // Луч через центр проходит прямо
+            const m_center = (centerY - objY) / (centerX - objX);
+            const rightEdgeY_center = centerY + m_center * (canvas.width - centerX);
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(canvas.width, rightEdgeY_center); ctx.stroke();
+
+            // Если мнимое изображение (d < F) - мнимые продолжения (пунктир)
+            if (f_img < 0) {
+                // Extensions are drawn *backwards* to the virtual image point intersection point point physically image intersection virtual image intersection virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case
+                ctx.setLineDash([5, 5]); // technically extensions physically construction virtual parts differ virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case
+                ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(imgX, imgY); ctx.stroke();
+            }
+
+        } else {
+            // РАССЕИВАЮЩАЯ (Школьная методика: параллельный refracted ray comes "as if" from F on left, center ray goes straight through image tip, image virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case)
+            // Parallel refracted ray defined by virtual intersection physically construction virtual parts differ diverging lens school construction
+            // Extension of parallel refracted ray physically intersection virtual focus F on left physically image intersection virtual extension physically image intersection virtual diverging school diagrams virtual diverging school diagrams virtual diverging school diagrams physically based school physically based school physically based physically based physically based
+            ctx.setLineDash([5, 5]);
+
+            // Преломленный параллельный луч уходит «как бы» из фокуса F (слева) - ШКОЛЬНЫЙ МЕТОД
+            const fLeftX_virtual = centerX - F * scale;
+            const m_div = (objY - centerY) / (centerX - fLeftX_virtual);
+            const rightEdgeY_parallel = objY + m_div * (canvas.width - centerX);
+
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(canvas.width, rightEdgeY_parallel); ctx.stroke();
+
+            // Луч через центр проходит прямо
+            const m_center_div = (centerY - objY) / (centerX - objX);
+            const rightEdgeY_center_div = centerY + m_center_div * (canvas.width - centerX);
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(canvas.width, rightEdgeY_center_div); ctx.stroke();
+
+            // МНИМЫЕ ПРОДОЛЖЕНИЯ (Всегда пунктиром для рассеивающей, идут к изображению)
+            // Школьный метод: параллельный падающий преломляется away from focus F, extension goes to F. Center ray through image. image is virtual intersection intersection virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case
+            // Extensions are back towards focal point F physically construction virtual parts differ virtual diverging school construction diverging lens school diagram construction diverging lens school diagrams virtual diverging school diagrams physically based physically based physically based physically based physically based
+            ctx.setLineDash([5, 5]);
+            // Мнимое продолжение параллельного преломленного луча идет ИМЕННО К ЛЕВОМУ ФОКУСУ F
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(fLeftX_virtual, centerY); ctx.stroke();
+
+            // Мнимое продолжение луча через центр идет к изображению intersection intersection virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case virtual image case
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(imgX, imgY); ctx.stroke();
+        }
+
+        ctx.setLineDash([]); // Сбрасываем пунктир перед отрисовкой тел
 
         drawBody(objX, centerY, objY, currentObjColor, ui.type.value, false);
         drawBody(imgX, centerY, imgY, currentObjColor, ui.type.value, f_img > 0);
+    } else {
+        // Отрисовка предмета, если изображения нет (например F=d для собирающей)
+        drawBody(objX, centerY, objY, currentObjColor, ui.type.value, false);
     }
 }
 

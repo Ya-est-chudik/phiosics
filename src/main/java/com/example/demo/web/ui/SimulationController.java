@@ -21,6 +21,7 @@ public class SimulationController {
         lensModel.setFocus(10);
         lensModel.setObjectDistance(15);
         lensModel.setObjectHeight(5);
+        lensModel.setLensType("converging");
         performCalculations(lensModel);
 
         modelMap.addAttribute("lensModel", lensModel);
@@ -35,12 +36,14 @@ public class SimulationController {
     public Model updateApi(
             @RequestParam float Focus,
             @RequestParam float ObjectDistance,
-            @RequestParam float ObjectHeight) {
+            @RequestParam float ObjectHeight,
+            @RequestParam(defaultValue = "converging") String LensType) {
 
         Model lensModel = new Model();
         lensModel.setFocus(Focus);
         lensModel.setObjectDistance(ObjectDistance);
         lensModel.setObjectHeight(ObjectHeight);
+        lensModel.setLensType(LensType);
         performCalculations(lensModel);
         return lensModel;
     }
@@ -50,9 +53,8 @@ public class SimulationController {
     public ErrorCalculator.ErrorStats addMeasurement(
             @RequestParam float Focus,
             @RequestParam float ObjectDistance,
-            @RequestParam float ObjectHeight) { // Добавили параметр
+            @RequestParam float ObjectHeight) {
 
-        // Передаем высоту в сервис
         errorCalculator.addMeasurement(Focus, ObjectDistance, ObjectHeight);
         return errorCalculator.getErrorStats();
     }
@@ -77,14 +79,14 @@ public class SimulationController {
             lensModel.calculateIncrease();
             lensModel.calculateImageHeight();
             lensModel.checkImageType();
-            log.info("Расчет выполнен: f={}, d={}, h={}, image_d={}, image_h={}",
-                    lensModel.getFocus(), lensModel.getObjectDistance(),
+            log.info("Расчет выполнен: type={}, f={}, d={}, h={}, image_d={}, image_h={}",
+                    lensModel.getLensType(), lensModel.getFocus(), lensModel.getObjectDistance(),
                     lensModel.getObjectHeight(), lensModel.getImageDistance(),
                     lensModel.getImageHeight());
         } else {
             lensModel.checkImageType();
-            log.warn("Изображение не существует для параметров: focus={}, distance={}",
-                    lensModel.getFocus(), lensModel.getObjectDistance());
+            log.warn("Изображение не существует для: type={}, focus={}, distance={}",
+                    lensModel.getLensType(), lensModel.getFocus(), lensModel.getObjectDistance());
         }
     }
 }
