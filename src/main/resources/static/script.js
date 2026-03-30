@@ -1,6 +1,6 @@
 const canvas = document.getElementById('opticsCanvas');
 const ctx = canvas.getContext('2d');
-const palette = ['#ffeb3b', '#ff00ff', '#bf5af2', '#00f2ff'];
+const palette = ['#e3b836', '#ff00ff', '#bf5af2', '#00f2ff'];
 let currentObjColor = palette[0];
 let zoomLevel = 0.5;
 
@@ -48,7 +48,7 @@ function smoothZoom() {
 function changeZoom(factor) {
     zoomTarget *= factor;
     if (zoomTarget < 0.1) zoomTarget = 0.1;
-    if (zoomTarget > 5.0) zoomTarget = 5.0;
+    if (zoomTarget > 3.0) zoomTarget = 3.0;
     smoothZoom();
 }
 
@@ -203,7 +203,7 @@ function draw(F, d, h, f_img, H_img) {
     const scale = baseScale * zoomLevel;
 
     // Сетка
-    ctx.strokeStyle = isLight ? 'rgba(0, 113, 227, 0.1)' : 'rgba(0, 242, 255, 0.1)';
+    ctx.strokeStyle = isLight ? 'rgba(2, 86, 176, 0.3)' : 'rgba(0, 242, 255, 0.2)';
     const step = 40;
 
     for (let x = centerX; x < canvas.width; x += step) {
@@ -283,7 +283,7 @@ function drawBody(x, baseY, topY, color, type, flipped) {
     if (type === 'pencil') {
         const w = 10;
         ctx.fillRect(x - w / 2, baseY, w, (topY - baseY) * 0.85);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#737373';
         ctx.beginPath();
         ctx.moveTo(x - w / 2, baseY + (topY - baseY) * 0.85);
         ctx.lineTo(x + w / 2, baseY + (topY - baseY) * 0.85);
