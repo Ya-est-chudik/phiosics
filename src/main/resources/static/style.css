@@ -7,7 +7,7 @@
     --accent-purple: #bf5af2;
     --accent-red: #ff4d4d;
 }
-
+/* Поле построения */
 body {
     margin: 0;
     padding: 0;
@@ -20,7 +20,7 @@ body {
     overflow: hidden;
     transition: background 0.3s ease, color 0.3s ease;
 }
-
+/* Заголовок */
 .neon-header {
     text-align: center;
     padding: 15px 0 5px 0;
@@ -32,7 +32,7 @@ body {
     font-size: 2rem;
     transition: all 0.3s ease;
 }
-
+/* Все менюшки */
 .main-layout {
     display: flex;
     flex: 1;
@@ -149,7 +149,7 @@ select {
     gap: 10px;
     margin-top: 10px;
 }
-
+/* Кнопка добавить и сброс */
 .btn {
     padding: 16px;
     border: none;
@@ -181,7 +181,7 @@ select {
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 1.05rem;
 }
 
@@ -305,6 +305,7 @@ td {
     height: auto;
     box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
     font-weight: 600;
+    border: none;
 }
 
 .theme-btn:hover {
@@ -346,7 +347,6 @@ body.light-mode .simulation-view {
 
 body.light-mode .neon-header {
     text-shadow: none;
-    color: #1d1d1f;
 }
 
 body.light-mode select {
@@ -363,11 +363,14 @@ body.light-mode .val-input {
 
 body.light-mode .glass-card {
     background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.light-mode .glass-card label{
+    color: rgba(56, 74, 94, 0.8);
 }
 
 body.light-mode .zoom-controls {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -399,11 +402,21 @@ body.light-mode .res-val {
 }
 
 body.light-mode .res-row {
-    border-bottom-color: rgba(0, 0, 0, 0.05);
+    border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
 body.light-mode td {
     border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .btn-add {
+    background: var(--accent-cyan);
+    color: #fff;
+}
+
+body.light-mode .btn-add:hover {
+    background: #004996;
+    transform: translateY(-2px);
 }
 
 body.light-mode .theme-btn {
