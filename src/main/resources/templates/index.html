@@ -69,17 +69,15 @@
                     <thead>
                     <tr>
                         <th>№</th>
-                        <th>d</th>
                         <th>f</th>
-                        <th>F_расч</th>
+                        <th>H</th>
                     </tr>
                     </thead>
                     <tbody id="log-body">
                     <tr th:each="measure, iterStat : ${measurements}">
                         <td th:text="${iterStat.index + 1}"></td>
-                        <td th:text="${#numbers.formatDecimal(measure.objectDistance, 1, 1)}"></td>
                         <td th:text="${#numbers.formatDecimal(measure.imageDistance, 1, 1)}"></td>
-                        <td th:text="${#numbers.formatDecimal(measure.calculatedFocus, 1, 2)}"></td>
+                        <td th:text="${#numbers.formatDecimal(measure.imageHeight, 1, 1)}"></td>
                     </tr>
                     </tbody>
                 </table>

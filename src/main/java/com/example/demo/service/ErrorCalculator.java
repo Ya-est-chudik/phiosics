@@ -16,19 +16,20 @@ public class ErrorCalculator {
     @Getter
     public static class Measurement {
         private double objectDistance;  // d
-        private double imageDistance;   // f (расчетное)
-        private double calculatedFocus; // F (вычисленное)
+        private double imageDistance;   // f
+        private double calculatedFocus; // F
+        private double imageHeight;     // H (добавлено)
 
-        public Measurement(double objectDistance, double imageDistance, double calculatedFocus) {
+        public Measurement(double objectDistance, double imageDistance, double calculatedFocus, double imageHeight) {
             this.objectDistance = objectDistance;
             this.imageDistance = imageDistance;
             this.calculatedFocus = calculatedFocus;
+            this.imageHeight = imageHeight;
         }
-
     }
 
     // Добавление измерения с учетом случайной погрешности
-    public Measurement addMeasurement(double focusSet, double objectDistance) {
+    public Measurement addMeasurement(double focusSet, double objectDistance, double objectHeight) {
         if (Math.abs(objectDistance - focusSet) < 0.1) {
             log.warn("Попытка добавить измерение с d = F");
             return null;
@@ -46,11 +47,14 @@ public class ErrorCalculator {
         double calculatedFocus = (measuredObjectDistance * measuredImageDistance) /
                 (measuredObjectDistance + measuredImageDistance);
 
-        Measurement measurement = new Measurement(measuredObjectDistance, measuredImageDistance, calculatedFocus);
+        double measuredImageHeight = objectHeight * (measuredImageDistance / measuredObjectDistance);
+
+        // Передаем H в конструктор
+        Measurement measurement = new Measurement(measuredObjectDistance, measuredImageDistance, calculatedFocus, measuredImageHeight);
         measurements.add(measurement);
 
-        log.info("Добавлено измерение: d={}, f={}, F={}",
-                measuredObjectDistance, measuredImageDistance, calculatedFocus);
+        log.info("Добавлено измерение: d={}, f={}, F={}, H={}",
+                measuredObjectDistance, measuredImageDistance, calculatedFocus, measuredImageHeight);
 
         return measurement;
     }
@@ -118,6 +122,5 @@ public class ErrorCalculator {
             this.totalError = (double) Math.round(totalError * 100) / 100;
             this.measurementsCount = measurementsCount;
         }
-
     }
 }

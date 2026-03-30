@@ -49,9 +49,11 @@ public class SimulationController {
     @ResponseBody
     public ErrorCalculator.ErrorStats addMeasurement(
             @RequestParam float Focus,
-            @RequestParam float ObjectDistance) {
+            @RequestParam float ObjectDistance,
+            @RequestParam float ObjectHeight) { // Добавили параметр
 
-        errorCalculator.addMeasurement(Focus, ObjectDistance);
+        // Передаем высоту в сервис
+        errorCalculator.addMeasurement(Focus, ObjectDistance, ObjectHeight);
         return errorCalculator.getErrorStats();
     }
 
