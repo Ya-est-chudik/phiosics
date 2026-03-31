@@ -44,21 +44,21 @@
                     <input type="number" id="num-f" class="val-input" th:value="${lensModel.Focus}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="f-range" min="1" max="500" th:value="${lensModel.Focus}">
+            <input type="range" id="f-range" min="1" max="100" th:value="${lensModel.Focus}">
 
             <label>Расстояние до предмета (d)
                 <div class="input-wrapper">
                     <input type="number" id="num-d" class="val-input" th:value="${lensModel.ObjectDistance}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="d-range" min="1" max="500" th:value="${lensModel.ObjectDistance}">
+            <input type="range" id="d-range" min="1" max="100" th:value="${lensModel.ObjectDistance}">
 
             <label>Высота (h)
                 <div class="input-wrapper">
                     <input type="number" id="num-h" class="val-input" th:value="${lensModel.ObjectHeight}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="h-range" min="1" max="500" th:value="${lensModel.ObjectHeight}">
+            <input type="range" id="h-range" min="1" max="100" th:value="${lensModel.ObjectHeight}">
         </div>
 
         <div class="glass-card">
