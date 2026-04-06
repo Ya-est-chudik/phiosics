@@ -156,8 +156,8 @@ async function resetMeasurements() {
 async function updateMeasurementsTable() { window.location.reload(); }
 
 function updateErrorDisplay(errorStats) {
-    document.getElementById('err-exp').innerText = errorStats.randomError.toFixed(2) + ' см';
-    document.getElementById('err-total').innerText = errorStats.totalError.toFixed(2) + ' см';
+    document.getElementById('err-total-f').innerText = errorStats.totalErrorF.toFixed(2) + ' см';
+    document.getElementById('err-total-h').innerText = errorStats.totalErrorH.toFixed(2) + ' см';
 }
 
 function resize() {
