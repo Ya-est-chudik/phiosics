@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div class="neon-header">Построение изображений в собирающей линзе</div>
+<div class="neon-header">Построение изображений в линзе</div>
 
 <div class="main-layout">
     <div class="simulation-view">
@@ -19,17 +19,24 @@
                 <button onclick="changeZoom(1.2)">+</button>
                 <button onclick="changeZoom(0.8)">-</button>
             </div>
+            <div id="zoom-level" class="zoom-level">100%</div>
         </div>
     </div>
 
     <div class="side-panel">
         <div class="glass-card">
+            <label>Тип линзы</label>
+            <select id="lens-type">
+                <option value="converging">Собирающая (Выпуклая)</option>
+                <option value="diverging">Рассеивающая (Вогнутая)</option>
+            </select>
+
             <label>Предмет</label>
             <select id="obj-type">
                 <option value="arrow">Стрелка</option>
                 <option value="pencil">Карандаш</option>
                 <option value="candle">Свеча</option>
-                <option value="book">Книга по вайбкодигу</option>
+                <option value="book">Книга по вайбкодингу</option>
             </select>
 
             <label>Фокус (F)
@@ -37,21 +44,21 @@
                     <input type="number" id="num-f" class="val-input" th:value="${lensModel.Focus}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="f-range" min="1" max="500" th:value="${lensModel.Focus}">
+            <input type="range" id="f-range" min="1" max="100" th:value="${lensModel.Focus}">
 
             <label>Расстояние до предмета (d)
                 <div class="input-wrapper">
                     <input type="number" id="num-d" class="val-input" th:value="${lensModel.ObjectDistance}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="d-range" min="1" max="500" th:value="${lensModel.ObjectDistance}">
+            <input type="range" id="d-range" min="1" max="100" th:value="${lensModel.ObjectDistance}">
 
             <label>Высота (h)
                 <div class="input-wrapper">
                     <input type="number" id="num-h" class="val-input" th:value="${lensModel.ObjectHeight}"> <span>см</span>
                 </div>
             </label>
-            <input type="range" id="h-range" min="1" max="500" th:value="${lensModel.ObjectHeight}">
+            <input type="range" id="h-range" min="1" max="100" th:value="${lensModel.ObjectHeight}">
         </div>
 
         <div class="glass-card">
@@ -85,16 +92,16 @@
 
             <div class="error-box">
                 <div class="err-line">
-                    <span>Системная (Δs):</span>
-                    <span  th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
-                </div>
-                <div class="err-line">
-                    <span>Случайная (Δe):</span>
-                    <span id="err-exp" th:text="${errorStats.randomError} + ' см'">0.00 см</span>
+                    <span>Системная погрешность:</span>
+                    <span th:text="${errorStats.systematicError} + ' см'">0.10 см</span>
                 </div>
                 <div class="err-line" style="margin-top:8px; font-weight:600; color:var(--accent-cyan)">
-                    <span>ИТОГО ΔF:</span>
-                    <span id="err-total" th:text="${errorStats.totalError} + ' см'">0.10 см</span>
+                    <span>ИТОГО Δf:</span>
+                    <span id="err-total-f" th:text="${errorStats.totalErrorF} + ' см'">0.10 см</span>
+                </div>
+                <div class="err-line" style="margin-top:4px; font-weight:600; color:var(--accent-purple)">
+                    <span>ИТОГО ΔH:</span>
+                    <span id="err-total-h" th:text="${errorStats.totalErrorH} + ' см'">0.10 см</span>
                 </div>
             </div>
 

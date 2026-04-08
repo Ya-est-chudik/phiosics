@@ -10,15 +10,15 @@ import java.util.List;
 @Service
 public class ErrorCalculator {
 
-    private static final double SYSTEMATIC_ERROR = 0.10; // системная погрешность в см
+    private static final double SYSTEMATIC_ERROR = 0.05; // системная погрешность в см
 
-    private List<Measurement> measurements = new ArrayList<>();
+    private final List<Measurement> measurements = new ArrayList<>();
     @Getter
     public static class Measurement {
-        private double objectDistance;  // d
-        private double imageDistance;   // f
-        private double calculatedFocus; // F
-        private double imageHeight;     // H (добавлено)
+        private final double objectDistance;  // d
+        private final double imageDistance;   // f
+        private final double calculatedFocus; // F
+        private final double imageHeight;     // H (добавлено)
 
         public Measurement(double objectDistance, double imageDistance, double calculatedFocus, double imageHeight) {
             this.objectDistance = objectDistance;
@@ -29,10 +29,10 @@ public class ErrorCalculator {
     }
 
     // Добавление измерения с учетом случайной погрешности
-    public Measurement addMeasurement(double focusSet, double objectDistance, double objectHeight) {
+    public void addMeasurement(double focusSet, double objectDistance, double objectHeight) {
         if (Math.abs(objectDistance - focusSet) < 0.1) {
             log.warn("Попытка добавить измерение с d = F");
-            return null;
+            return;
         }
 
         // Идеальное фокусное расстояние
@@ -56,7 +56,6 @@ public class ErrorCalculator {
         log.info("Добавлено измерение: d={}, f={}, F={}, H={}",
                 measuredObjectDistance, measuredImageDistance, calculatedFocus, measuredImageHeight);
 
-        return measurement;
     }
 
     // Сброс всех измерений
@@ -70,57 +69,33 @@ public class ErrorCalculator {
         return new ArrayList<>(measurements);
     }
 
-    // Расчет случайной погрешности
-    public double calculateRandomError() {
-        if (measurements.size() <= 1) {
-            return 0.0;
-        }
-
-        // Вычисляем среднее значение F
-        double avgF = measurements.stream()
-                .mapToDouble(Measurement::getCalculatedFocus)
-                .average()
-                .orElse(0.0);
-
-        // Вычисляем дисперсию
+    // Универсальный расчет случайной погрешности
+    private double calculateRandomError(java.util.function.ToDoubleFunction<Measurement> mapper) {
+        if (measurements.size() <= 1) return 0.0;
+        double avg = measurements.stream().mapToDouble(mapper).average().orElse(0.0);
         double variance = measurements.stream()
-                .mapToDouble(m -> Math.pow(m.getCalculatedFocus() - avgF, 2))
+                .mapToDouble(m -> Math.pow(mapper.applyAsDouble(m) - avg, 2))
                 .sum() / (measurements.size() * (measurements.size() - 1));
-
-        // Случайная погрешность (коэффициент Стьюдента для 95% доверительного интервала ~2.5)
         return Math.sqrt(variance) * 2.5;
-    }
-
-    // Получение системной погрешности
-    public double getSystematicError() {
-        return SYSTEMATIC_ERROR;
-    }
-
-    // Расчет общей погрешности
-    public double calculateTotalError() {
-        double randomError = calculateRandomError();
-        return Math.sqrt(Math.pow(SYSTEMATIC_ERROR, 2) + Math.pow(randomError, 2));
     }
 
     // Получение статистики для отображения
     public ErrorStats getErrorStats() {
-        double randomError = calculateRandomError();
-        double totalError = Math.sqrt(Math.pow(SYSTEMATIC_ERROR, 2) + Math.pow(randomError, 2));
+        double randErrF = calculateRandomError(Measurement::getImageDistance);
+        double randErrH = calculateRandomError(Measurement::getImageHeight);
 
-        return new ErrorStats(randomError, SYSTEMATIC_ERROR, totalError, measurements.size());
+        double totalErrF = Math.sqrt(Math.pow(SYSTEMATIC_ERROR, 2) + Math.pow(randErrF, 2));
+        double totalErrH = Math.sqrt(Math.pow(SYSTEMATIC_ERROR, 2) + Math.pow(randErrH, 2));
+
+        return new ErrorStats(totalErrF, totalErrH, SYSTEMATIC_ERROR, measurements.size());
     }
-    @Getter
-    public static class ErrorStats {
-        private final double randomError;
-        private final double systematicError;
-        private final double totalError;
-        private final int measurementsCount;
 
-        public ErrorStats(double randomError, double systematicError, double totalError, int measurementsCount) {
-            this.randomError = (double) Math.round(randomError * 100) / 100;
-            this.systematicError = (double) Math.round(systematicError * 100) / 100;
-            this.totalError = (double) Math.round(totalError * 100) / 100;
-            this.measurementsCount = measurementsCount;
+    public record ErrorStats(double totalErrorF, double totalErrorH, double systematicError, int measurementsCount) {
+            public ErrorStats(double totalErrorF, double totalErrorH, double systematicError, int measurementsCount) {
+                this.totalErrorF = (double) Math.round(totalErrorF * 100) / 100;
+                this.totalErrorH = (double) Math.round(totalErrorH * 100) / 100;
+                this.systematicError = (double) Math.round(systematicError * 100) / 100;
+                this.measurementsCount = measurementsCount;
+            }
         }
-    }
 }

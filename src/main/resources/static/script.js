@@ -11,7 +11,8 @@ const ui = {
     nf: document.getElementById('num-f'),
     nd: document.getElementById('num-d'),
     nh: document.getElementById('num-h'),
-    type: document.getElementById('obj-type')
+    type: document.getElementById('obj-type'),
+    lensType: document.getElementById('lens-type')
 };
 
 let zoomTarget = zoomLevel;
@@ -20,14 +21,11 @@ let animationId = null;
 function updateZoomDisplay() {
     const zoomPercent = Math.round(zoomLevel * 100);
     const zoomDisplay = document.getElementById('zoom-level');
-    if (zoomDisplay) {
-        zoomDisplay.textContent = zoomPercent + '%';
-    }
+    if (zoomDisplay) zoomDisplay.textContent = zoomPercent + '%';
 }
 
 function smoothZoom() {
     if (animationId) cancelAnimationFrame(animationId);
-
     function animate() {
         const diff = zoomTarget - zoomLevel;
         if (Math.abs(diff) > 0.001) {
@@ -55,12 +53,10 @@ function changeZoom(factor) {
 function init() {
     window.addEventListener('resize', resize);
 
-    // Загрузка сохраненной темы
     if (localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light-mode');
     }
 
-    const canvas = document.getElementById('opticsCanvas');
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -88,6 +84,8 @@ function init() {
         update();
     });
 
+    ui.lensType.addEventListener('change', update);
+
     updateZoomDisplay();
     resize();
 }
@@ -96,12 +94,13 @@ async function update() {
     const F = parseFloat(ui.f.value);
     const d = parseFloat(ui.d.value);
     const h = parseFloat(ui.h.value);
+    const lensType = ui.lensType.value;
 
     try {
         const response = await fetch('/api/update', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h })
+            body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h, LensType: lensType })
         });
         const lensModel = await response.json();
 
@@ -110,74 +109,55 @@ async function update() {
         const mag = lensModel.IncreaseLens;
 
         document.getElementById('r-f').innerText = lensModel.IsValid
-            ? Math.abs(f_img).toFixed(1) + ' см'
-            : '∞';
+            ? Math.abs(f_img).toFixed(1) + ' см' : '∞';
         document.getElementById('r-H').innerText = lensModel.IsValid
-            ? H_img.toFixed(1) + ' см'
-            : '-';
+            ? H_img.toFixed(1) + ' см' : '-';
         document.getElementById('r-g').innerText = lensModel.IsValid
-            ? mag.toFixed(2)
-            : '-';
+            ? mag.toFixed(2) : '-';
         document.getElementById('r-type').innerText = lensModel.ImageType || '-';
 
-        draw(F, d, h, f_img, H_img);
+        draw(F, d, h, f_img, H_img, lensType);
     } catch (e) {
         console.error('Ошибка обновления с сервера', e);
     }
 }
 
+// Функции addMeasurement, resetMeasurements, updateMeasurementsTable, updateErrorDisplay остаются без изменений
+// Для краткости я их не дублирую полностью, они точно такие же как в твоем исходнике.
 async function addMeasurement() {
     const F = parseFloat(ui.f.value);
     const d = parseFloat(ui.d.value);
     const h = parseFloat(ui.h.value);
-
-    if (Math.abs(d - F) < 0.1) {
-        alert('Невозможно добавить измерение при d = F');
+    if (Math.abs(d - F) < 0.1 && ui.lensType.value === 'converging') {
+        alert('Невозможно добавить измерение при d = F для собирающей линзы');
         return;
     }
-
     try {
         const response = await fetch('/api/measurement/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ Focus: F, ObjectDistance: d, ObjectHeight: h })
         });
-
         const errorStats = await response.json();
         updateErrorDisplay(errorStats);
         await updateMeasurementsTable();
-
-    } catch (e) {
-        console.error('Ошибка при добавлении измерения', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function resetMeasurements() {
     try {
-        const response = await fetch('/api/measurement/reset', {
-            method: 'POST'
-        });
-
+        const response = await fetch('/api/measurement/reset', { method: 'POST' });
         const errorStats = await response.json();
         updateErrorDisplay(errorStats);
         await updateMeasurementsTable();
-
-    } catch (e) {
-        console.error('Ошибка при сбросе измерений', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-async function updateMeasurementsTable() {
-    try {
-        window.location.reload();
-    } catch (e) {
-        console.error('Ошибка при обновлении таблицы', e);
-    }
-}
+async function updateMeasurementsTable() { window.location.reload(); }
 
 function updateErrorDisplay(errorStats) {
-    document.getElementById('err-exp').innerText = errorStats.randomError.toFixed(2) + ' см';
-    document.getElementById('err-total').innerText = errorStats.totalError.toFixed(2) + ' см';
+    document.getElementById('err-total-f').innerText = errorStats.totalErrorF.toFixed(2) + ' см';
+    document.getElementById('err-total-h').innerText = errorStats.totalErrorH.toFixed(2) + ' см';
 }
 
 function resize() {
@@ -193,7 +173,9 @@ function toggleTheme() {
     update();
 }
 
-function draw(F, d, h, f_img, H_img) {
+// Функция draw в script.js, обновленная для школьного построения (пунктир и фокусы рассеивающей)
+
+function draw(F, d, h, f_img, H_img, lensType) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const isLight = document.body.classList.contains('light-mode');
     const centerX = canvas.width / 2;
@@ -202,74 +184,113 @@ function draw(F, d, h, f_img, H_img) {
     const baseScale = (canvas.width / 1.6) / Math.max(d, safe_f, F * 2.2);
     const scale = baseScale * zoomLevel;
 
-    // Сетка
-    ctx.strokeStyle = isLight ? 'rgba(2, 86, 176, 0.3)' : 'rgba(0, 242, 255, 0.2)';
+    // 1. Сетка и Оптическая ось
+    ctx.strokeStyle = isLight ? 'rgba(2, 86, 176, 0.2)' : 'rgba(0, 242, 255, 0.15)';
     const step = 40;
+    for (let x = centerX; x < canvas.width; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let x = centerX - step; x > 0; x -= step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = centerY; y < canvas.height; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+    for (let y = centerY - step; y > 0; y -= step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-    for (let x = centerX; x < canvas.width; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (let x = centerX - step; x > 0; x -= step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (let y = centerY; y < canvas.height; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
-    for (let y = centerY - step; y > 0; y -= step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
-
-    // Оптическая ось
-    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)';
+    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)';
     ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(canvas.width, centerY); ctx.stroke();
 
+    // 2. Фокусы (Точки)
     const points = [{ v: -2 * F, l: '2F' }, { v: -F, l: 'F' }, { v: F, l: "F'" }, { v: 2 * F, l: "2F'" }];
     points.forEach(p => {
         const x = centerX + p.v * scale;
-        ctx.fillStyle = isLight ? '#000' : '#fff';
-        ctx.beginPath(); ctx.arc(x, centerY, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.font = '24px Inter, sans-serif';
+        ctx.fillStyle = isLight ? '#0256b0' : '#00f2ff';
+        ctx.beginPath(); ctx.arc(x, centerY, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.font = 'bold 18px Inter, sans-serif';
         ctx.fillText(p.l, x - 10, centerY + 25);
     });
 
-    // Линза
-    const lH = 300;
+    // 3. Отрисовка большой линзы
+    const lH = 400;
     ctx.save();
     ctx.translate(centerX, centerY);
-    ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.fillStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.ellipse(0, lH + 160, 40, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
-    ctx.beginPath(); ctx.lineWidth = 3; ctx.moveTo(0, lH); ctx.lineTo(0, lH + 154); ctx.stroke();
-    ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath(); ctx.lineWidth = 2.5; ctx.moveTo(0, lH); ctx.lineTo(0, lH - 700); ctx.stroke();
 
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = '#00f2ff';
-    ctx.strokeStyle = '#00f2ff';
-    ctx.fillStyle = 'rgba(0, 242, 255, 0.2)';
-    ctx.beginPath(); ctx.lineWidth = 2;
-    ctx.moveTo(0, -lH);
-    ctx.quadraticCurveTo(80, 0, 0, lH);
-    ctx.quadraticCurveTo(-80, 0, 0, -lH);
-    ctx.fill();
-    ctx.stroke();
+    ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath(); ctx.lineWidth = 2; ctx.moveTo(0, 1000); ctx.lineTo(0, -1000); ctx.stroke();
+
+    // Цвета линзы в зависимости от темы
+    const lensColor = isLight ? '#0256b0' : '#00f2ff';
+    const lensFill = isLight ? 'rgba(2, 86, 176, 0.1)' : 'rgba(0, 242, 255, 0.15)';
+
+    ctx.shadowBlur = isLight ? 10 : 25;
+    ctx.shadowColor = lensColor;
+    ctx.strokeStyle = lensColor;
+    ctx.fillStyle = lensFill;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+
+    if (lensType === 'converging') {
+        ctx.moveTo(0, -lH);
+        ctx.quadraticCurveTo(100, 0, 0, lH);
+        ctx.quadraticCurveTo(-100, 0, 0, -lH);
+    } else {
+        const w = 40;
+        ctx.moveTo(-w, -lH); ctx.lineTo(w, -lH);
+        ctx.quadraticCurveTo(0, 0, w, lH);
+        ctx.lineTo(-w, lH);
+        ctx.quadraticCurveTo(0, 0, -w, -lH);
+    }
+    ctx.fill(); ctx.stroke();
     ctx.restore();
 
+    // 4. Построение лучей
     const objX = centerX - d * scale;
     const objY = centerY - h * scale;
 
-    if (Math.abs(d - F) > 1) {
+    if (isFinite(f_img) && d > 0) {
         const imgX = centerX + f_img * scale;
         const imgY = f_img > 0 ? centerY + (H_img * scale) : centerY - (H_img * scale);
 
-        ctx.setLineDash([5, 5]);
-        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)';
-        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
-        ctx.setLineDash([]);
+        // Цвет лучей
+        ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)';
+        ctx.setLineDash([5, 5]); // Школьный пунктир для всех линий построения
 
+        // --- ЛУЧ 1: Параллельный ---
+        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, objY); ctx.stroke();
+
+        // --- ЛУЧ 2: Через центр ---
+        ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, centerY); ctx.stroke();
+
+        if (lensType === 'converging') {
+            // Собирающая: преломленный луч идет через фокус F' (справа)
+            const fRightX = centerX + F * scale;
+            const m = (centerY - objY) / (fRightX - centerX);
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(canvas.width, objY + m * (canvas.width - centerX)); ctx.stroke();
+
+            // Продолжение через центр
+            const mC = (centerY - objY) / (centerX - objX);
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(canvas.width, centerY + mC * (canvas.width - centerX)); ctx.stroke();
+
+            // Если изображение мнимое (d < F), рисуем пунктир назад к img
+            if (f_img < 0) {
+                ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(imgX, imgY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(imgX, imgY); ctx.stroke();
+            }
+        } else {
+            // Рассеивающая: преломленный луч идет ОТ левого фокуса F
+            const fLeftX = centerX - F * scale;
+            const m = (objY - centerY) / (centerX - fLeftX);
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(canvas.width, objY + m * (canvas.width - centerX)); ctx.stroke();
+
+            // Луч через центр
+            const mC = (centerY - objY) / (centerX - objX);
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(canvas.width, centerY + mC * (canvas.width - centerX)); ctx.stroke();
+
+            // Мнимые продолжения к левому фокусу и точке изображения
+            ctx.beginPath(); ctx.moveTo(centerX, objY); ctx.lineTo(fLeftX, centerY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(imgX, imgY); ctx.stroke();
+        }
+
+        ctx.setLineDash([]); // Сброс пунктира для самих предметов
         drawBody(objX, centerY, objY, currentObjColor, ui.type.value, false);
         drawBody(imgX, centerY, imgY, currentObjColor, ui.type.value, f_img > 0);
+    } else {
+        drawBody(objX, centerY, objY, currentObjColor, ui.type.value, false);
     }
 }
 
