@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 
 
 @Slf4j
@@ -75,8 +76,8 @@ public class SimulationController {
 
     @GetMapping("/api/measurements")
     @ResponseBody
-    public ErrorCalculator.ErrorStats getMeasurements() {
-        return errorCalculator.getErrorStats();
+    public List<ErrorCalculator.Measurement> getMeasurements() {
+        return errorCalculator.getMeasurements();
     }
 
     private void performCalculations(Model lensModel) {

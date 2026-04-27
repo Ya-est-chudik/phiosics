@@ -153,7 +153,27 @@ async function resetMeasurements() {
     } catch (e) { console.error(e); }
 }
 
-async function updateMeasurementsTable() { window.location.reload(); }
+async function updateMeasurementsTable() {
+    try {
+        const response = await fetch('/api/measurements');
+        const measurements = await response.json();
+        const body = document.getElementById('log-body');
+        if (!body) return;
+
+        body.innerHTML = '';
+        measurements.forEach((measurement, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${Number(measurement.imageDistance).toFixed(1)}</td>
+                <td>${Number(measurement.imageHeight).toFixed(1)}</td>
+            `;
+            body.appendChild(row);
+        });
+    } catch (e) {
+        console.error('Ошибка обновления таблицы измерений', e);
+    }
+}
 
 function updateErrorDisplay(errorStats) {
     document.getElementById('err-total-f').innerText = errorStats.totalErrorF.toFixed(2) + ' см';

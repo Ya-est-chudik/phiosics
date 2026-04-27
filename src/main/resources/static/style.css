@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
 html {
-    zoom: 0.7;
+    zoom: 0.67;
 }
 
 :root {
@@ -200,6 +200,11 @@ table {
     border-collapse: collapse;
     font-size: 0.7rem;
     margin-top: 10px;
+}
+
+.measurements-log {
+    height: 110px;
+    overflow-y: auto;
 }
 
 th {
