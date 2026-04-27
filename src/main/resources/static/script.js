@@ -248,7 +248,7 @@ function draw(F, d, h, f_img, H_img, lensType) {
 
         // Цвет лучей
         ctx.strokeStyle = isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)';
-        ctx.setLineDash([5, 5]); // Школьный пунктир для всех линий построения
+        ctx.setLineDash([5, 5]);
 
         // --- ЛУЧ 1: Параллельный ---
         ctx.beginPath(); ctx.moveTo(objX, objY); ctx.lineTo(centerX, objY); ctx.stroke();

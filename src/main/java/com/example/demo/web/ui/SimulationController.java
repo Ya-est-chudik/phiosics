@@ -2,16 +2,23 @@ package com.example.demo.web.ui;
 
 import com.example.demo.model.Model;
 import com.example.demo.service.ErrorCalculator;
+import io.swagger.v3.oas.models.OpenAPI;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+
+
 @Slf4j
 @Controller
 public class SimulationController {
-
     @Autowired
     private ErrorCalculator errorCalculator;
 
