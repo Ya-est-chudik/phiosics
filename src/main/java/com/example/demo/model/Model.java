@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import lombok.Data;
 
 import static java.lang.Math.abs;
+
 @Slf4j
 @Component
 @Data
@@ -16,32 +17,42 @@ public class Model {
     public float ObjectHeight;     // Высота предмета
     public float ImageHeight;      // Высота изображения
     public float IncreaseLens;     // Увеличение линзы
-    public boolean IsValid;        // Булева переменная которая нам говорит: "изображение существует либо нет"
+    public boolean IsValid;        // Изображение существует либо нет
     public String ImageType;       // Хранение типа изображения предмета
+    public String LensType = "converging"; // Тип линзы (converging - собирающая, diverging - рассеивающая)
 
     // Начало функций проверки
-    public void isValidEnter(){          // Проверка на правильность ввода
-        IsValid = Focus > 0 & ObjectDistance != 0 & Focus != ObjectDistance;
+    public void isValidEnter() {
+        if ("diverging".equals(LensType)) {
+            // Для рассеивающей линзы изображение есть всегда (если d > 0)
+            IsValid = Focus > 0 && ObjectDistance > 0;
+        } else {
+            // Для собирающей фокус не должен быть равен расстоянию до предмета
+            IsValid = Focus > 0 && ObjectDistance > 0 && Focus != ObjectDistance;
+        }
     }
 
     public void checkImageType() {
         if (IsValid) {
-            // Главное исправление: тип зависит от дистанции до изображения
-            if (ImageDistance > 0) {
-                ImageType = "Действительное, перевёрнутое, ";
+            if ("diverging".equals(LensType)) {
+                ImageType = "Мнимое, прямое, уменьшенное";
             } else {
-                ImageType = "Мнимое, прямое, ";
-            }
+                if (ImageDistance > 0) {
+                    ImageType = "Действительное, перевёрнутое, ";
+                } else {
+                    ImageType = "Мнимое, прямое, ";
+                }
 
-            if (IncreaseLens < 1) {
-                ImageType += "уменьшенное";
-            } else if (IncreaseLens > 1) {
-                ImageType += "увеличенное";
-            } else {
-                ImageType += "в натуральную величину";
+                if (IncreaseLens < 1) {
+                    ImageType += "уменьшенное";
+                } else if (IncreaseLens > 1) {
+                    ImageType += "увеличенное";
+                } else {
+                    ImageType += "в натуральную величину";
+                }
             }
         } else {
-            if (ObjectDistance == Focus) {
+            if ("converging".equals(LensType) && ObjectDistance == Focus) {
                 ImageType = "Изображение в бесконечности";
             } else {
                 ImageType = "Нет изображения (ошибка ввода)";
@@ -51,15 +62,17 @@ public class Model {
     // Конец функций проверки
 
     // Начало функций вычислений
-    public void calculateImageDistance(){  // Вычисляем расстояние от линзы до изображения из введенных данных
-        this.ImageDistance = (this.ObjectDistance * this.Focus) / (this.ObjectDistance - this.Focus);
+    public void calculateImageDistance() {
+        // У рассеивающей линзы фокус мнимый (отрицательный) для расчетов
+        float f_calc = "diverging".equals(LensType) ? -this.Focus : this.Focus;
+        this.ImageDistance = (this.ObjectDistance * f_calc) / (this.ObjectDistance - f_calc);
     }
 
-    public void calculateImageHeight(){    // Вычисляем высоту изображения из введенных данных
+    public void calculateImageHeight() {
         this.ImageHeight = abs(this.ImageDistance / this.ObjectDistance) * this.ObjectHeight;
     }
 
-    public void calculateIncrease() {      // Вычисляем увеличение линзы из введенных данных
+    public void calculateIncrease() {
         this.IncreaseLens = abs(this.ImageDistance / this.ObjectDistance);
     }
     // Конец функций вычислений
